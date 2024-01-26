@@ -54,15 +54,16 @@ public class RunFreightFoodRetailingBerlinExample {
 		Config config;
 		if ( args==null || args.length==0 || args[0]==null ){
 			config = ConfigUtils.createConfig();
-			config.network().setInputFile("https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/berlin/berlin-v5.5-10pct/output-berlinv5.5/berlin-v5.5.3-10pct.output_network.xml.gz");
-			config.controller().setOutputDirectory( "./output/freight3" );
+			//config.network().setInputFile("https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/berlin/berlin-v5.5-10pct/output-berlinv5.5/berlin-v5.5.3-10pct.output_network.xml.gz");
+			config.network().setInputFile("input/berlin-v5.5.3-10pct.output_network.xml");
+			config.controller().setOutputDirectory( "./output/freightDashboard" );
 			config.controller().setLastIteration( 0 );  // no iterations; for iterations see RunFreightWithIterationsExample.  kai, jan'23
 			config.controller().setOverwriteFileSetting(OutputDirectoryHierarchy.OverwriteFileSetting.deleteDirectoryIfExists);
 			config.global().setCoordinateSystem("EPSG:31468");
 
 			FreightCarriersConfigGroup freightConfigGroup = ConfigUtils.addOrGetModule( config, FreightCarriersConfigGroup.class );
-			freightConfigGroup.setCarriersFile(  pathToInput + "CarrierLEH_v2_withFleet_Shipment_OneTW_PickupTime_ICEV.xml" );
-			freightConfigGroup.setCarriersVehicleTypesFile( pathToInput + "vehicleTypesBVWP100_DC_noTax.xml" );
+			freightConfigGroup.setCarriersFile(pathToInput + "CarrierLEH_v2_withFleet_Shipment_OneTW_PickupTime_ICEV.xml" );
+			freightConfigGroup.setCarriersVehicleTypesFile(pathToInput + "vehicleTypesBVWP100_DC_noTax.xml" );
 		} else {
 			config = ConfigUtils.loadConfig( args, new FreightCarriersConfigGroup() );
 		}
@@ -75,10 +76,14 @@ public class RunFreightFoodRetailingBerlinExample {
 
 		//Filter out only one carrier and reduce number of jsprit iteration to 1. Both for computational reasons.
 		Carriers carriers = CarriersUtils.getCarriers(scenario);
+		System.out.println(carriers);
 		var carrier = carriers.getCarriers().get(Id.create("rewe_DISCOUNTER_TROCKEN", Carrier.class));
+		var carrier2 = carriers.getCarriers().get(Id.create("edeka_SUPERMARKT_FRISCHE", Carrier.class));
 		CarriersUtils.setJspritIterations(carrier, 1);
+		CarriersUtils.setJspritIterations(carrier2, 1);
 		carriers.getCarriers().clear();
 		carriers.addCarrier(carrier);
+		carriers.addCarrier(carrier2);
 
 		// output before jsprit run (not necessary)
 		new CarrierPlanWriter(CarriersUtils.getCarriers( scenario )).write( "output/jsprit_unplannedCarriers.xml" ) ;
@@ -102,7 +107,8 @@ public class RunFreightFoodRetailingBerlinExample {
 		// ## Start of the MATSim-Run: ##
 		controler.run();
 
-		var analysis = new RunFreightAnalysisEventBased(config.controller().getOutputDirectory()+"/", config.controller().getOutputDirectory()+"/analysis", "EPSG:31468");
+		//var analysis = new RunFreightAnalysisEventBased(config.controller().getOutputDirectory()+"/", config.controller().getOutputDirectory()+"/analysis", "EPSG:31468");
+		var analysis = new RunFreightAnalysisEventBased("output/freightDashboard/", "output/freightDashboard/analysis", "EPSG:31468");
 		try {
 			analysis.runAnalysis();
 		} catch (IOException e) {
