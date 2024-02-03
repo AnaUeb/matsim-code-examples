@@ -37,16 +37,18 @@ import org.matsim.freight.carriers.analysis.RunFreightAnalysisEventBased;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
+import static org.matsim.core.controler.OutputDirectoryLogging.*;
+
 
 /**
  * @see org.matsim.freight.carriers
  */
 public class RunFreightFoodRetailingBerlinExample {
 
-	public static void main(String[] args) throws ExecutionException, InterruptedException{
+	public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
 		run(args, false);
 	}
-	public static void run( String[] args, boolean runWithOTFVis ) throws ExecutionException, InterruptedException{
+	public static void run( String[] args, boolean runWithOTFVis ) throws ExecutionException, InterruptedException, IOException {
 
 		// Path to public repo:
 		String pathToInput = "https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/berlin/projects/freight/foodRetailing_wo_rangeConstraint/input/";
@@ -79,11 +81,23 @@ public class RunFreightFoodRetailingBerlinExample {
 		System.out.println(carriers);
 		var carrier = carriers.getCarriers().get(Id.create("rewe_DISCOUNTER_TROCKEN", Carrier.class));
 		var carrier2 = carriers.getCarriers().get(Id.create("edeka_SUPERMARKT_FRISCHE", Carrier.class));
+		var carrier3 = carriers.getCarriers().get(Id.create("lidl_DISCOUNTER_TIEFKUEHL", Carrier.class));
+		var carrier4 = carriers.getCarriers().get(Id.create("rewe_DISCOUNTER_FRISCHE", Carrier.class));
+		var carrier5 = carriers.getCarriers().get(Id.create("edeka_SUPERMARKT_TROCKEN", Carrier.class));
+		var carrier6 = carriers.getCarriers().get(Id.create("lidl_DISCOUNTER_FRISCHE", Carrier.class));
 		CarriersUtils.setJspritIterations(carrier, 1);
 		CarriersUtils.setJspritIterations(carrier2, 1);
+		CarriersUtils.setJspritIterations(carrier3, 1);
+		CarriersUtils.setJspritIterations(carrier4, 1);
+		CarriersUtils.setJspritIterations(carrier5, 1);
+		CarriersUtils.setJspritIterations(carrier6, 1);
 		carriers.getCarriers().clear();
 		carriers.addCarrier(carrier);
 		carriers.addCarrier(carrier2);
+		carriers.addCarrier(carrier3);
+		carriers.addCarrier(carrier4);
+		carriers.addCarrier(carrier5);
+		carriers.addCarrier(carrier6);
 
 		// output before jsprit run (not necessary)
 		new CarrierPlanWriter(CarriersUtils.getCarriers( scenario )).write( "output/jsprit_unplannedCarriers.xml" ) ;
@@ -95,6 +109,9 @@ public class RunFreightFoodRetailingBerlinExample {
 		// Output after jsprit run (not necessary)
 		new CarrierPlanWriter(CarriersUtils.getCarriers( scenario )).write( "output/jsprit_plannedCarriers.xml" ) ;
 		// (this will go into the standard "output" directory.  note that this may be removed if this is also used as the configured output dir.)
+
+		//logfile
+		initLoggingWithOutputDirectory("output/freightDashboard/logfile/");
 
 		// ## MATSim configuration:  ##
 		final Controler controler = new Controler( scenario ) ;
@@ -108,10 +125,12 @@ public class RunFreightFoodRetailingBerlinExample {
 		controler.run();
 
 		//var analysis = new RunFreightAnalysisEventBased(config.controller().getOutputDirectory()+"/", config.controller().getOutputDirectory()+"/analysis", "EPSG:31468");
-		var analysis = new RunFreightAnalysisEventBased("output/freightDashboard/", "output/freightDashboard/analysis", "EPSG:31468");
+		var analysis = new RunFreightAnalysisEventBased("output/freightDashboard/", "output/freightDashboard/analysis3", "EPSG:31468");
 		try {
 			analysis.runAnalysis();
 		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}

@@ -68,9 +68,8 @@ public class RunFreightAnalysisEventBased {
 		this.GLOBAL_CRS = globalCrs;
 	}
 
-	public void runAnalysis() throws IOException {
+	public void runAnalysis() throws Exception {
 
-		System.out.println("Test Ana");
 		Config config = ConfigUtils.createConfig();
 		config.vehicles().setVehiclesFile(SIM_OUTPUT_PATH + "output_allVehicles.xml.gz");
 		config.network().setInputFile(SIM_OUTPUT_PATH + "output_network.xml.gz");
@@ -93,12 +92,16 @@ public class RunFreightAnalysisEventBased {
 		folder.mkdirs();
 
 		final String eventsFile = SIM_OUTPUT_PATH + "output_events.xml.gz";
+		final Logger log = LogManager.getLogger(SIM_OUTPUT_PATH + "logfile.log");
 
 		Scenario scenario = ScenarioUtils.loadScenario(config);
 
 		//load carriers according to freight config
 		CarriersUtils.loadCarriersAccordingToFreightConfig( scenario );
 
+		//log analysis
+		LogFileAnalysisNew logFileAnalysis = new LogFileAnalysisNew(log,SIM_OUTPUT_PATH,analysisOutputDirectory);
+		logFileAnalysis.runLogFileAnalysis();
 
 		// CarrierPlanAnalysis
 		CarrierPlanAnalysis carrierPlanAnalysis = new CarrierPlanAnalysis(CarriersUtils.getCarriers(scenario));

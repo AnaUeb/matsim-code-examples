@@ -49,6 +49,8 @@ public class RunFreightAnalysis {
 			analysis.runAnalysis();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
 

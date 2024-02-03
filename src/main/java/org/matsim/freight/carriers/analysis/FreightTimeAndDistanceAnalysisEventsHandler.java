@@ -168,7 +168,7 @@ public class FreightTimeAndDistanceAnalysisEventsHandler implements BasicEventHa
 			vehicleTypesMap.putIfAbsent(vehicleType.getId(), vehicleType);
 		}
 
-		String fileName = analysisOutputDirectory + "TimeDistance_perVehicleType.tsv";
+		String fileName = analysisOutputDirectory + "TimeDistance_perVehicleType.csv";
 
 		BufferedWriter bw1 = new BufferedWriter(new FileWriter(fileName));
 
