@@ -1,3 +1,4 @@
+// can be deleted
 /*
  *   *********************************************************************** *
  *   project: org.matsim.*
@@ -67,10 +68,6 @@ public class SummaryAnalysis {
 		int tours = 0;
 		int shipments = 0;
 		int services = 0;
-
-		//Write headline:
-		//bw1.write("carrierId ; MATSimScoreSelectedPlan ; jSpritScoreSelectedPlan ; nuOfTours ; nuOfShipments(input) ; nuOfServices(input) ");
-		//bw1.newLine();
 
 		final TreeMap<Id<Carrier>, Carrier> sortedCarrierMap = new TreeMap<>(carriers.getCarriers());
 

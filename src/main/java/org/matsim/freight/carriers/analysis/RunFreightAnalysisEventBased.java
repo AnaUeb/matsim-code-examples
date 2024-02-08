@@ -35,7 +35,6 @@ import org.matsim.core.events.MatsimEventsReader;
 import org.matsim.core.scenario.ScenarioUtils;
 
 import java.io.File;
-import java.io.IOException;
 
 
 /**
@@ -99,22 +98,20 @@ public class RunFreightAnalysisEventBased {
 		//load carriers according to freight config
 		CarriersUtils.loadCarriersAccordingToFreightConfig( scenario );
 
-		//log analysis
-		LogFileAnalysisNew logFileAnalysis = new LogFileAnalysisNew(log,SIM_OUTPUT_PATH,analysisOutputDirectory);
+		//Log analysis
+		//added bei AUE
+		//ToDo: add log analysis for jsprit
+		LogFileAnalysis logFileAnalysis = new LogFileAnalysis(log,SIM_OUTPUT_PATH,analysisOutputDirectory);
 		logFileAnalysis.runLogFileAnalysis();
 
 		// CarrierPlanAnalysis
 		CarrierPlanAnalysis carrierPlanAnalysis = new CarrierPlanAnalysis(CarriersUtils.getCarriers(scenario));
 		carrierPlanAnalysis.runAnalysisAndWriteStats(analysisOutputDirectory);
 
-		// SummaryPlanAnalysis
-		SummaryAnalysis summaryAnalysis = new SummaryAnalysis(CarriersUtils.getCarriers(scenario));
-		summaryAnalysis.runAnalysisAndWriteStats(analysisOutputDirectory);
-
-		// Prepare eventsManager - start of event based Analysis;
+		// Prepare eventsManager
 		EventsManager eventsManager = EventsUtils.createEventsManager();
 
-		FreightTimeAndDistanceAnalysisEventsHandler freightTimeAndDistanceAnalysisEventsHandler = new FreightTimeAndDistanceAnalysisEventsHandler(scenario);
+		FreightTimeAndDistanceAnalysisEventsHandler freightTimeAndDistanceAnalysisEventsHandler = new FreightTimeAndDistanceAnalysisEventsHandler(scenario,CarriersUtils.getCarriers(scenario));
 		eventsManager.addHandler(freightTimeAndDistanceAnalysisEventsHandler);
 
 		CarrierLoadAnalysis carrierLoadAnalysis = new CarrierLoadAnalysis(CarriersUtils.getCarriers(scenario));
@@ -130,7 +127,8 @@ public class RunFreightAnalysisEventBased {
 		log.info("Writing output...");
 		freightTimeAndDistanceAnalysisEventsHandler.writeTravelTimeAndDistance(analysisOutputDirectory, scenario);
 		freightTimeAndDistanceAnalysisEventsHandler.writeTravelTimeAndDistancePerVehicleType(analysisOutputDirectory, scenario);
-		carrierLoadAnalysis.writeLoadPerVehicle(analysisOutputDirectory, scenario);
+		carrierLoadAnalysis.writeLoadAnalysis(analysisOutputDirectory, scenario);
+		freightTimeAndDistanceAnalysisEventsHandler.writeGeneralStats(analysisOutputDirectory);
 	}
 
 }

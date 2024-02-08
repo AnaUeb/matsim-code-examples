@@ -5,18 +5,14 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.matsim.application.CommandSpec;
-import org.matsim.application.MATSimAppCommand;
 import org.matsim.application.options.CsvOptions;
-import org.matsim.application.options.InputOptions;
-import org.matsim.application.options.OutputOptions;
 import org.matsim.core.utils.io.IOUtils;
-import picocli.CommandLine;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -26,35 +22,36 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@CommandLine.Command(name = "log-file", description = "Analyses MATSim log files to gather run information.")
-@CommandSpec(
-	requires = "logfile.log",
-	produces = {"run_info.csv", "memory_stats.csv", "runtime_stats.csv", "warnings.csv", "status.md"},
-	group = "general"
-)
-public class LogFileAnalysis implements MATSimAppCommand {
+public class LogFileAnalysis {
 
 	private static final Logger log = LogManager.getLogger(LogFileAnalysis.class);
 
-	@CommandLine.Mixin
-	private InputOptions input = InputOptions.ofCommand(LogFileAnalysis.class);
-	@CommandLine.Mixin
-	private OutputOptions output = OutputOptions.ofCommand(LogFileAnalysis.class);
+	Logger oldLog;
+	String input;
+	String output;
 
-	@CommandLine.Mixin
 	private CsvOptions csv = new CsvOptions(CSVFormat.Predefined.Default);
 
-	public static void main(String[] args) {
-		new LogFileAnalysis().execute(args);
+
+	public LogFileAnalysis(Logger oldLog, String input, String output){
+		this.oldLog = oldLog;
+		this.input = input;
+		this.output = output;
+		csv.getFormat().builder().setDelimiter(";");
 	}
 
+	public void runLogFileAnalysis() throws Exception {
+		log.info("Writing out log analysis ...");
+		//Load per vehicle
+		call();
+
+	}
 	private static LocalDateTime parseDate(String line) {
 		// Ignore milliseconds part
 		int idx = line.indexOf(',');
 		return LocalDateTime.parse(line.substring(0, idx));
 	}
 
-	//@Override
 	public Integer call() throws Exception {
 
 		Pattern gbl = Pattern.compile(".+INFO Gbl:\\d+ (.+?):(.+)");
@@ -74,7 +71,7 @@ public class LogFileAnalysis implements MATSimAppCommand {
 
 		LocalDateTime itBegin = null;
 
-		try (BufferedReader reader = IOUtils.getBufferedReader(input.getPath())) {
+		try (BufferedReader reader = IOUtils.getBufferedReader(input+"logfile.log")) {
 			String line;
 			while ((line = reader.readLine()) != null) {
 
@@ -128,21 +125,22 @@ public class LogFileAnalysis implements MATSimAppCommand {
 		}
 
 
-		try (CSVPrinter printer = csv.createPrinter(output.getPath("run_info.csv"))) {
+		try (CSVPrinter printer = csv.createPrinter(Path.of(output + "run_info.csv"))) {
 			printer.printRecord("info", "value");
 			for (Map.Entry<String, String> e : info.entrySet()) {
 				printer.printRecord(e.getKey(), e.getValue());
 			}
+			printer.printRecord("MATSim iterations",iterations.size()-1);
 		}
 
-		try (CSVPrinter printer = csv.createPrinter(output.getPath("memory_stats.csv"))) {
+		try (CSVPrinter printer = csv.createPrinter(Path.of(output + "memory_stats.csv"))) {
 			printer.printRecord("time", "used", "free");
 			for (Memory m : memory) {
 				printer.printRecord(formatter.format(m.date), m.used, m.free);
 			}
 		}
 
-		try (CSVPrinter printer = csv.createPrinter(output.getPath("runtime_stats.csv"))) {
+		try (CSVPrinter printer = csv.createPrinter(Path.of(output + "runtime_stats.csv"))) {
 			printer.printRecord("Iteration", "seconds");
 			for (int i = 0; i < iterations.size(); i++) {
 				Iteration it = iterations.get(i);
@@ -150,14 +148,14 @@ public class LogFileAnalysis implements MATSimAppCommand {
 			}
 		}
 
-		try (CSVPrinter printer = csv.createPrinter(output.getPath("warnings.csv"))) {
+		try (CSVPrinter printer = csv.createPrinter(Path.of(output + "warnings.csv"))) {
 			printer.printRecord("Module", "Message");
 			for (Warning warning : warnings) {
 				printer.printRecord(warning.module, warning.msg);
 			}
 		}
 
-		try (BufferedWriter writer = Files.newBufferedWriter(output.getPath("status.md"))) {
+		try (BufferedWriter writer = Files.newBufferedWriter(Path.of(output + "status.md"))) {
 			renderWarnings(writer, warnings);
 		}
 

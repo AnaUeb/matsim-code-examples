@@ -57,7 +57,6 @@ public class CarrierLoadAnalysis implements BasicEventHandler {
 		this.carriers = carriers;
 	}
 
-	private final Map<Id<Vehicle>, VehicleType> vehicleId2VehicleType = new TreeMap<>();
 
 	@Override public void handleEvent(Event event) {
 		if (event.getEventType().equals(CarrierShipmentPickupStartEvent.EVENT_TYPE)) {
@@ -92,7 +91,7 @@ public class CarrierLoadAnalysis implements BasicEventHandler {
 		vehicle2Load.put(vehicleId, list);
 	}
 
-	void writeLoadPerVehicle(String analysisOutputDirectory, Scenario scenario) throws IOException {
+	void writeLoadAnalysis(String analysisOutputDirectory, Scenario scenario) throws IOException {
 		log.info("Writing out vehicle load analysis ...");
 
 		//Load per vehicle
@@ -101,14 +100,16 @@ public class CarrierLoadAnalysis implements BasicEventHandler {
 		BufferedWriter bw1 = new BufferedWriter(new FileWriter(fileName));
 
 		//Write headline:
-		bw1.write("vehicleId ; vehicleTypeId ; capacity ; maxLoad ; unusedCapacity; load state during tour");
+		bw1.write("vehicleId ; vehicleTypeId ; capacity ; maxLoad ; usedCapacity[%]; load state during tour");
 		bw1.newLine();
 
 
 		// for calculation
-		double dif = 0;
 		List<Double> perc = new ArrayList();
 		List<String> types = new ArrayList();
+
+		// for capacity display
+		List<String> capPerType = new ArrayList<>();
 
 		for (Id<Vehicle> vehicleId : vehicle2Load.keySet()) {
 
@@ -118,8 +119,11 @@ public class CarrierLoadAnalysis implements BasicEventHandler {
 			final VehicleType vehicleType = VehicleUtils.findVehicle(vehicleId, scenario).getType();
 			final Double capacity = vehicleType.getCapacity().getOther();
 
-			dif = capacity - maxLoad;
 			perc.add(maxLoad/capacity);
+			String cap = vehicleType.getId().toString() + ";" + capacity;
+			if (!capPerType.contains(cap)) {
+				capPerType.add(cap);
+			}
 			if (!types.contains(vehicleType.getId().toString())) {
 				types.add(vehicleType.getId().toString());
 			}
@@ -128,7 +132,7 @@ public class CarrierLoadAnalysis implements BasicEventHandler {
 			bw1.write(";"+vehicleType.getId().toString());
 			bw1.write(";" + capacity);
 			bw1.write(";" + maxLoad);
-			bw1.write(";" + dif);
+			bw1.write(";" + Math.round(100*100*maxLoad/capacity)/100);
 			bw1.write(";" + load);
 			bw1.newLine();
 		}
@@ -136,17 +140,43 @@ public class CarrierLoadAnalysis implements BasicEventHandler {
 		bw1.close();
 		log.info("Output written to " + fileName);
 
-		//Load total
+		log.info("Writing out summary of vehicle load analysis ...");
+		//Tiles with used vehicleTypes and average load
+		//added by AUE
+
+		// Determination of ll VehicleTypes in CarriervehicleTypes container. Used so that even unused vehTypes appear in the output
+		TreeMap<Id<VehicleType>, VehicleType> vehicleTypesMap = new TreeMap<>(CarriersUtils.getCarrierVehicleTypes(scenario).getVehicleTypes());
+		//For the case that there are additional vehicle types found in the events.
+		for (Id<Vehicle> vehicleId  : vehicle2Load.keySet()) {
+			VehicleType vehicleType  = VehicleUtils.findVehicle(vehicleId, scenario).getType();
+			vehicleTypesMap.putIfAbsent(vehicleType.getId(),vehicleType);
+		}
+
+		//Write file for tiles
 		String fileName1 = analysisOutputDirectory + "Load_summary.csv";
 		BufferedWriter bw2 = new BufferedWriter(new FileWriter(fileName1));
 		double use = Math.round(perc.stream().mapToDouble(Double::doubleValue).sum()/ perc.size()*100);
 
-		//Write file
-		bw2.write("Used vehicle types,"+ types.size() +",car");
+		bw2.write("Used vehicle types,"+ types.size() +"/"+vehicleTypesMap.size()+",car");
 		bw2.newLine();
 		bw2.write("Average use of capacity,"+ use+"%,chart-pie");
 		bw2.close();
 		log.info("Output written to " + fileName1);
+
+		//Capacity total
+		String fileName2 = analysisOutputDirectory + "Capacity_summary.csv";
+		BufferedWriter bw3 = new BufferedWriter(new FileWriter(fileName2));
+
+		//Write file
+		bw3.write("vehicleTypeId"+ ";maxCapacity");
+		bw3.newLine();
+		for (String cap : capPerType) {
+			bw3.write(cap);
+			bw3.newLine();
+		}
+
+		bw3.close();
+		log.info("Output written to " + fileName2);
 
 	}
 

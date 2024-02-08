@@ -28,6 +28,7 @@ import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.events.Event;
 import org.matsim.api.core.v01.events.LinkEnterEvent;
 import org.matsim.freight.carriers.Carrier;
+import org.matsim.freight.carriers.Carriers;
 import org.matsim.freight.carriers.CarriersUtils;
 import org.matsim.freight.carriers.Tour;
 import org.matsim.freight.carriers.events.CarrierTourEndEvent;
@@ -52,6 +53,7 @@ public class FreightTimeAndDistanceAnalysisEventsHandler implements BasicEventHa
 	private final static Logger log = LogManager.getLogger(FreightTimeAndDistanceAnalysisEventsHandler.class);
 
 	private final Scenario scenario;
+	Carriers carriers;
 	private final Map<Id<Vehicle>, Double> vehicleId2TourDuration = new LinkedHashMap<>();
 	private final Map<Id<Vehicle>, Double> vehicleId2TourLength = new LinkedHashMap<>();
 
@@ -65,8 +67,9 @@ public class FreightTimeAndDistanceAnalysisEventsHandler implements BasicEventHa
 	private final Map<String, Double> tourStartTime = new LinkedHashMap<>();
 
 
-	public FreightTimeAndDistanceAnalysisEventsHandler(Scenario scenario) {
+	public FreightTimeAndDistanceAnalysisEventsHandler(Scenario scenario, Carriers carriers) {
 		this.scenario = scenario;
+		this.carriers = carriers;
 	}
 
 	private void handleEvent(CarrierTourStartEvent event) {
@@ -117,8 +120,9 @@ public class FreightTimeAndDistanceAnalysisEventsHandler implements BasicEventHa
 		BufferedWriter bw1 = new BufferedWriter(new FileWriter(fileName));
 
 		//Write headline:
+		//TODO: Fix dashboard-4-vehicleTypeTime and delete last column
 		bw1.write("vehicleId ; carrierId ; vehicleTypeId ; tourId ; tourDuration[s] ; travelDistance[m] ; " +
-				"costPerSecond[EUR/s] ; costPerMeter[EUR/m] ; fixedCosts[EUR] ; varCostsTime[EUR] ; varCostsDist[EUR] ; totalCosts[EUR]");
+				"costPerSecond[EUR/s] ; costPerMeter[EUR/m] ; fixedCosts[EUR] ; varCostsTime[EUR] ; varCostsDist[EUR] ; totalCosts[EUR];summe");
 		bw1.newLine();
 
 		for (Id<Vehicle> vehicleId : vehicleId2VehicleType.keySet()) {
@@ -147,7 +151,8 @@ public class FreightTimeAndDistanceAnalysisEventsHandler implements BasicEventHa
 			bw1.write(";" + fixedCost);
 			bw1.write(";" + varCostsTime);
 			bw1.write(";" + varCostsDist);
-			bw1.write(";" + totalVehCosts);
+			//TODO: Fix dashboard-4-vehicleTypeTime and delete the 1
+			bw1.write(";" + totalVehCosts+";1");
 
 			bw1.newLine();
 		}
@@ -213,4 +218,65 @@ public class FreightTimeAndDistanceAnalysisEventsHandler implements BasicEventHa
 		bw1.close();
 		log.info("Output written to " + fileName);
 	}
+
+//added by AUE to create dashboard tiles
+	void writeGeneralStats(String analysisOutputDirectory) throws IOException {
+		log.info("Writing out general analysis ...");
+		//Load per vehicle
+		String fileName = analysisOutputDirectory + "General_stats.csv";
+
+		BufferedWriter bw1 = new BufferedWriter(new FileWriter(fileName));
+
+		//Define parameters
+		double matsimscore = 0.0;
+		double jspritscore = 0.0;
+		int carrierNr = 0;
+		int tours = 0;
+		int shipments = 0;
+		int services = 0;
+		double durationInMin = 0;
+		double distanceInKm = 0;
+
+		//total distance and duration
+		for (Id<Vehicle> vehicleId : vehicleId2VehicleType.keySet()) {
+
+			durationInMin += vehicleId2TourDuration.get(vehicleId);
+			distanceInKm += vehicleId2TourLength.get(vehicleId);
+
+		}
+
+		//other stats
+		final TreeMap<Id<Carrier>, Carrier> sortedCarrierMap = new TreeMap<>(carriers.getCarriers());
+
+		for (Carrier carrier : sortedCarrierMap.values()) {
+			carrierNr += 1;
+			matsimscore +=  carrier.getSelectedPlan().getScore();
+			jspritscore +=  carrier.getSelectedPlan().getJspritScore();
+			tours += carrier.getSelectedPlan().getScheduledTours().size();
+			shipments += carrier.getShipments().size();
+			services += carrier.getServices().size();
+		}
+
+		bw1.write("Number of carriers,"+carrierNr+",");
+		bw1.newLine();
+		bw1.write("Total tour duration,"+Math.round(100*durationInMin/60/60)/100+" h,");
+		bw1.newLine();
+		bw1.write("Total travel distance,"+ Math.round(100*distanceInKm/1000)/100+" km,");
+		bw1.newLine();
+		bw1.write("Number of tours,"+tours+",");
+		bw1.newLine();
+		bw1.write("Number of shipments,"+shipments+",");
+		bw1.newLine();
+		bw1.write("Number of services,"+services+",");
+		bw1.newLine();
+		bw1.write("Total MATSim Score,"+matsimscore+",");
+		bw1.newLine();
+		bw1.write("Total jsprit Score,"+jspritscore+",");
+		bw1.newLine();
+
+
+		bw1.close();
+		log.info("Output written to " + fileName);
+	}
 }
+

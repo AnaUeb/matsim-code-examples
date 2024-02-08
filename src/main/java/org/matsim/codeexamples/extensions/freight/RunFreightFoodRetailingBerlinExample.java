@@ -78,7 +78,6 @@ public class RunFreightFoodRetailingBerlinExample {
 
 		//Filter out only one carrier and reduce number of jsprit iteration to 1. Both for computational reasons.
 		Carriers carriers = CarriersUtils.getCarriers(scenario);
-		System.out.println(carriers);
 		var carrier = carriers.getCarriers().get(Id.create("rewe_DISCOUNTER_TROCKEN", Carrier.class));
 		var carrier2 = carriers.getCarriers().get(Id.create("edeka_SUPERMARKT_FRISCHE", Carrier.class));
 		var carrier3 = carriers.getCarriers().get(Id.create("lidl_DISCOUNTER_TIEFKUEHL", Carrier.class));
@@ -110,8 +109,6 @@ public class RunFreightFoodRetailingBerlinExample {
 		new CarrierPlanWriter(CarriersUtils.getCarriers( scenario )).write( "output/jsprit_plannedCarriers.xml" ) ;
 		// (this will go into the standard "output" directory.  note that this may be removed if this is also used as the configured output dir.)
 
-		//logfile
-		initLoggingWithOutputDirectory("output/freightDashboard/logfile/");
 
 		// ## MATSim configuration:  ##
 		final Controler controler = new Controler( scenario ) ;
@@ -125,7 +122,7 @@ public class RunFreightFoodRetailingBerlinExample {
 		controler.run();
 
 		//var analysis = new RunFreightAnalysisEventBased(config.controller().getOutputDirectory()+"/", config.controller().getOutputDirectory()+"/analysis", "EPSG:31468");
-		var analysis = new RunFreightAnalysisEventBased("output/freightDashboard/", "output/freightDashboard/analysis3", "EPSG:31468");
+		var analysis = new RunFreightAnalysisEventBased("output/freightDashboard/", "output/freightDashboard/analysis", "EPSG:31468");
 		try {
 			analysis.runAnalysis();
 		} catch (IOException e) {
