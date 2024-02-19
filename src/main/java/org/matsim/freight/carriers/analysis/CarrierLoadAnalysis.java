@@ -141,6 +141,7 @@ public class CarrierLoadAnalysis implements BasicEventHandler {
 		log.info("Output written to " + fileName);
 
 		log.info("Writing out summary of vehicle load analysis ...");
+
 		//Tiles with used vehicleTypes and average load
 		//added by AUE
 
@@ -157,7 +158,7 @@ public class CarrierLoadAnalysis implements BasicEventHandler {
 		BufferedWriter bw2 = new BufferedWriter(new FileWriter(fileName1));
 		double use = Math.round(perc.stream().mapToDouble(Double::doubleValue).sum()/ perc.size()*100);
 
-		bw2.write("Used vehicle types,"+ types.size() +"/"+vehicleTypesMap.size()+",car");
+		bw2.write("Used vehicle types,"+ types.size() +"/"+vehicleTypesMap.size()+",truck");
 		bw2.newLine();
 		bw2.write("Average use of capacity,"+ use+"%,chart-pie");
 		bw2.close();

@@ -271,7 +271,7 @@ public class FreightTimeAndDistanceAnalysisEventsHandler implements BasicEventHa
 		bw1.newLine();
 		bw1.write("Total MATSim Score,"+matsimscore+",");
 		bw1.newLine();
-		bw1.write("Total jsprit Score,"+jspritscore+",");
+		bw1.write("Total jsprit Score,"+Math.round(100*jspritscore)/100+",");
 		bw1.newLine();
 
 

@@ -78,12 +78,12 @@ public class RunFreightFoodRetailingBerlinExample {
 
 		//Filter out only one carrier and reduce number of jsprit iteration to 1. Both for computational reasons.
 		Carriers carriers = CarriersUtils.getCarriers(scenario);
-		var carrier = carriers.getCarriers().get(Id.create("rewe_DISCOUNTER_TROCKEN", Carrier.class));
+		var carrier = carriers.getCarriers().get(Id.create("edeka_SUPERMARKT_TROCKEN", Carrier.class));
 		var carrier2 = carriers.getCarriers().get(Id.create("edeka_SUPERMARKT_FRISCHE", Carrier.class));
-		var carrier3 = carriers.getCarriers().get(Id.create("lidl_DISCOUNTER_TIEFKUEHL", Carrier.class));
-		var carrier4 = carriers.getCarriers().get(Id.create("rewe_DISCOUNTER_FRISCHE", Carrier.class));
-		var carrier5 = carriers.getCarriers().get(Id.create("edeka_SUPERMARKT_TROCKEN", Carrier.class));
-		var carrier6 = carriers.getCarriers().get(Id.create("lidl_DISCOUNTER_FRISCHE", Carrier.class));
+		var carrier3 = carriers.getCarriers().get(Id.create("edeka_SUPERMARKT_TIEFKUEHL", Carrier.class));
+		var carrier4 = carriers.getCarriers().get(Id.create("lidl_DISCOUNTER_FRISCHE", Carrier.class));
+		var carrier5 = carriers.getCarriers().get(Id.create("lidl_DISCOUNTER_TROCKEN", Carrier.class));
+		var carrier6 = carriers.getCarriers().get(Id.create("lidl_DISCOUNTER_TIEFKUEHL", Carrier.class));
 		CarriersUtils.setJspritIterations(carrier, 1);
 		CarriersUtils.setJspritIterations(carrier2, 1);
 		CarriersUtils.setJspritIterations(carrier3, 1);

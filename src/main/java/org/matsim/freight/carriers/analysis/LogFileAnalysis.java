@@ -1,3 +1,6 @@
+// based on contribs/application/src/main/java/org/matsim/application/analysis/LogFileAnalysis.java
+//
+
 package org.matsim.freight.carriers.analysis;
 
 import org.apache.commons.csv.CSVFormat;
