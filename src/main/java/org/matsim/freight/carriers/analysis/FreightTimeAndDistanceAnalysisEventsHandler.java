@@ -122,7 +122,7 @@ public class FreightTimeAndDistanceAnalysisEventsHandler implements BasicEventHa
 		//Write headline:
 		//TODO: Fix dashboard-4-vehicleTypeTime and delete last column
 		bw1.write("vehicleId ; carrierId ; vehicleTypeId ; tourId ; tourDuration[s] ; travelDistance[m] ; " +
-				"costPerSecond[EUR/s] ; costPerMeter[EUR/m] ; fixedCosts[EUR] ; varCostsTime[EUR] ; varCostsDist[EUR] ; totalCosts[EUR];summe");
+				"costPerSecond[EUR/s] ; costPerMeter[EUR/m] ; fixedCosts[EUR] ; varCostsTime[EUR] ; varCostsDist[EUR] ; totalCosts[EUR]; summe");
 		bw1.newLine();
 
 		for (Id<Vehicle> vehicleId : vehicleId2VehicleType.keySet()) {

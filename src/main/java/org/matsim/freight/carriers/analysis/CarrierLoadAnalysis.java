@@ -145,19 +145,20 @@ public class CarrierLoadAnalysis implements BasicEventHandler {
 		//Tiles with used vehicleTypes and average load
 		//added by AUE
 
-		// Determination of ll VehicleTypes in CarriervehicleTypes container. Used so that even unused vehTypes appear in the output
+		//Write file for tiles
+		String fileName1 = analysisOutputDirectory + "Load_summary.csv";
+		BufferedWriter bw2 = new BufferedWriter(new FileWriter(fileName1));
+		double use = Math.round(perc.stream().mapToDouble(Double::doubleValue).sum()/ perc.size()*100);
+
+		// Determination of all VehicleTypes in CarriervehicleTypes container. Used so that even unused vehTypes appear in the output
 		TreeMap<Id<VehicleType>, VehicleType> vehicleTypesMap = new TreeMap<>(CarriersUtils.getCarrierVehicleTypes(scenario).getVehicleTypes());
 		//For the case that there are additional vehicle types found in the events.
 		for (Id<Vehicle> vehicleId  : vehicle2Load.keySet()) {
 			VehicleType vehicleType  = VehicleUtils.findVehicle(vehicleId, scenario).getType();
 			vehicleTypesMap.putIfAbsent(vehicleType.getId(),vehicleType);
 		}
-
-		//Write file for tiles
-		String fileName1 = analysisOutputDirectory + "Load_summary.csv";
-		BufferedWriter bw2 = new BufferedWriter(new FileWriter(fileName1));
-		double use = Math.round(perc.stream().mapToDouble(Double::doubleValue).sum()/ perc.size()*100);
-
+		//TODO: ";" statt ","
+		//globalConfig.getDefaultDelimiter
 		bw2.write("Used vehicle types,"+ types.size() +"/"+vehicleTypesMap.size()+",truck");
 		bw2.newLine();
 		bw2.write("Average use of capacity,"+ use+"%,chart-pie");
@@ -169,8 +170,9 @@ public class CarrierLoadAnalysis implements BasicEventHandler {
 		BufferedWriter bw3 = new BufferedWriter(new FileWriter(fileName2));
 
 		//Write file
-		bw3.write("vehicleTypeId"+ ";maxCapacity");
+		bw3.write("vehicleTypeId"+ ";" + "maxCapacity");
 		bw3.newLine();
+
 		for (String cap : capPerType) {
 			bw3.write(cap);
 			bw3.newLine();
